@@ -1,0 +1,22 @@
+INSERT INTO stock (symbol, name, current_market_price, high52w, low52w) VALUES
+('RELIANCE', 'Reliance Industries', 2950.50, 3025.00, 2220.30),
+('TCS', 'Tata Consultancy Services', 4100.25, 4250.00, 3050.00),
+('INFY', 'Infosys', 1620.75, 1700.00, 1185.30),
+('HDFCBANK', 'HDFC Bank', 1525.60, 1750.00, 1363.55),
+('ICICIBANK', 'ICICI Bank', 1080.20, 1257.80, 899.00),
+('SBIN', 'State Bank of India', 780.40, 912.00, 543.20),
+('LT', 'Larsen & Toubro', 3550.90, 3735.00, 2215.00),
+('ITC', 'ITC Limited', 420.10, 499.60, 399.35),
+('HINDUNILVR', 'Hindustan Unilever', 2450.75, 2769.65, 2172.05),
+('KOTAKBANK', 'Kotak Mahindra Bank', 1750.30, 2064.40, 1543.85),
+('AXISBANK', 'Axis Bank', 1125.80, 1230.00, 814.30),
+('BAJFINANCE', 'Bajaj Finance', 7200.50, 8190.00, 6187.80),
+('MARUTI', 'Maruti Suzuki', 10500.00, 10945.00, 8400.00),
+('ASIANPAINT', 'Asian Paints', 3150.60, 3568.00, 2685.85),
+('SUNPHARMA', 'Sun Pharma', 1650.45, 1740.00, 960.55),
+('TITAN', 'Titan Company', 3500.00, 3887.00, 2665.30),
+('ULTRACEMCO', 'UltraTech Cement', 9200.25, 10526.00, 7850.00),
+('ONGC', 'ONGC', 275.60, 319.00, 146.20),
+('NTPC', 'NTPC Limited', 360.80, 393.20, 212.00),
+('POWERGRID', 'Power Grid Corp', 310.20, 345.00, 180.30)
+ON CONFLICT (symbol) DO NOTHING;

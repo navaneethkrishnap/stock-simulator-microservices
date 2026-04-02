@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: stock-sim-api-gateway
+
+
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/user-service/**
+          filters:
+            - StripPrefix=1
+
+        - id: bank-service
+          uri: lb://bank-service
+          predicates:
+            - Path=/bank-service/**
+          filters:
+            - StripPrefix=1
+
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/order-service/**
+          filters:
+            - StripPrefix=1
+
+        - id: stock-service
+          uri: lb://stock-service
+          predicates:
+            - Path=/stock-service/**
+          filters:
+            - StripPrefix=1
+
+        - id: portfolio-service
+          uri: lb://portfolio-service
+          predicates:
+            - Path=/portfolio-service/**
+          filters:
+            - StripPrefix=1
+
+      discovery:
+        locator:
+          enabled: false
+          lower-case-service-id: true
+
+
+server:
+  port: 8888

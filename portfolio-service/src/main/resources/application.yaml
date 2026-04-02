@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: portfolio-service
+
+  datasource:
+    url: ${DB_URL}
+    password: ${DB_PASS}
+    username: ${DB_USER}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      dialect: org.hibernate.dialect.PostgreSQLDriver
+
+server:
+  port: 8085

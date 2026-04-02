@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: user-service
+
+  dataSource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+
+#  sql:
+#    init:
+#      mode: always
+
+server:
+  port: 8081
+
