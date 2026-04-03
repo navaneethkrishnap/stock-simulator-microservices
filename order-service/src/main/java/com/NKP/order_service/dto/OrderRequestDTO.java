@@ -16,7 +16,7 @@ public class OrderRequestDTO {
     private String symbol;
     @Min(value = 1, message = "Select at least 1 quantity")
     private Long quantity;
-    @NotBlank
+    @NotNull
     private OrderType type;
 }
 

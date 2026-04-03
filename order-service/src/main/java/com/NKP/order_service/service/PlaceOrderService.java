@@ -2,6 +2,7 @@ package com.NKP.order_service.service;
 
 import com.NKP.order_service.dto.OrderPaymentRequestDTO;
 import com.NKP.order_service.dto.OrderRequestDTO;
+import com.NKP.order_service.dto.OrderResponseDTO;
 import com.NKP.order_service.dto.portfolfio.AddStocksRequestDTO;
 import com.NKP.order_service.dto.portfolfio.DeductStocksRequestDTO;
 import com.NKP.order_service.dto.stock.StockDTO;
@@ -28,7 +29,7 @@ public class PlaceOrderService {
     private final PortfolioClient portfolioClient;
 
 
-    public void placeOrder(OrderRequestDTO orderRequestDTO){
+    public OrderResponseDTO placeOrder(OrderRequestDTO orderRequestDTO){
 
         if(orderRequestDTO.getQuantity() < 1){
             throw new IllegalArgumentException("Quantity must be positive.");
@@ -81,6 +82,15 @@ public class PlaceOrderService {
 
             portfolioClient.addStockIntoAccount(addStocksRequestDTO);
             order.setStatus(OrderStatus.EXECUTED);
+            return OrderResponseDTO.builder()
+                    .orderPrice(marketPrice)
+                    .quantity(quantity)
+                    .status(order.getStatus())
+                    .stockName(stockName)
+                    .symbol(symbol)
+                    .type(order.getType())
+                    .totalInvestment(totalAmount)
+                    .build();
 
         }catch (Exception e){
             if(paymentDeducted){
@@ -93,6 +103,15 @@ public class PlaceOrderService {
             order.setStatus(OrderStatus.CANCELLED);
         }
         orderRepository.save(order);
+        return OrderResponseDTO.builder()
+                .orderPrice(marketPrice)
+                .stockName(stockName)
+                .symbol(symbol)
+                .status(OrderStatus.CANCELLED)
+                .type(type)
+                .totalInvestment(totalAmount)
+                .quantity(quantity)
+                .build();
     }
 
     public void sellOrder(OrderRequestDTO orderRequestDTO){
