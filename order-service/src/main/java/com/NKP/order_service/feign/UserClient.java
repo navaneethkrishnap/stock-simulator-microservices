@@ -17,4 +17,11 @@ public interface UserClient {
 
     @PostMapping("trade/refund-payment-buy")
     ResponseEntity<String> refundBuyOrderPayment(@RequestBody OrderPaymentRequestDTO requestDTO);
+
+    @PostMapping("trade/sell")
+    ResponseEntity<String> receiveSellOrderFunds(@RequestBody OrderPaymentRequestDTO receivePaymenetDTO);
+
+    @PostMapping("trade/redo-sell")
+    ResponseEntity<String> redoSellOrderFunds(@RequestBody OrderPaymentRequestDTO requestDTO);
+
 }

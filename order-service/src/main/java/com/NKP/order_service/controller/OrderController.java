@@ -2,6 +2,7 @@ package com.NKP.order_service.controller;
 
 import com.NKP.order_service.dto.OrderRequestDTO;
 import com.NKP.order_service.service.PlaceOrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +19,14 @@ public class OrderController {
     private final PlaceOrderService placeOrderService;
 
     @PostMapping("/buy")
-    public ResponseEntity<String> placeOrder(@RequestBody OrderRequestDTO orderRequest){
+    public ResponseEntity<String> placeOrder(@Valid @RequestBody OrderRequestDTO orderRequest){
         placeOrderService.placeOrder(orderRequest);
+        return new ResponseEntity<>("SUCCESS", HttpStatus.OK);
+    }
+
+    @PostMapping("/sell")
+    public ResponseEntity<String> sellOrder(@Valid @RequestBody OrderRequestDTO orderRequest){
+        placeOrderService.sellOrder(orderRequest);
         return new ResponseEntity<>("SUCCESS", HttpStatus.OK);
     }
 }

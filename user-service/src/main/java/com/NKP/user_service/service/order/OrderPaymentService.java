@@ -32,7 +32,7 @@ public class OrderPaymentService {
         }
 
         user.setAvailBalance(availAmount.subtract(amount));
-        userRepository.save(user);
+//        userRepository.save(user);
     }
 
     @Transactional
@@ -48,4 +48,26 @@ public class OrderPaymentService {
         userRepository.save(user);
     }
 
+    @Transactional
+    public void sellOrderFunds(OrderPaymentRequestDTO receivePaymenetDTO) {
+        long userId = receivePaymenetDTO.getUserId();
+        BigDecimal amount = receivePaymenetDTO.getAmount();
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new RuntimeException("User not found"));
+
+        user.setAvailBalance(user.getAvailBalance().add(amount));
+
+    }
+
+    @Transactional
+    public void redoSellOrderFunds(OrderPaymentRequestDTO dto){
+        long userId = dto.getUserId();
+        BigDecimal amount = dto.getAmount();
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new RuntimeException("User not found"));
+
+        user.setAvailBalance(user.getAvailBalance().subtract(amount));
+    }
 }

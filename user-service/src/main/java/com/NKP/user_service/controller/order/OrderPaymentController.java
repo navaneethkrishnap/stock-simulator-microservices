@@ -25,14 +25,21 @@ public class OrderPaymentController {
         return new ResponseEntity<>("SUCCESS", HttpStatus.OK);
     }
 
-    @PostMapping("/sell")
-    public ResponseEntity<String> receiveSellOrderFunds(){
-        return null;
-    }
-
     @PostMapping("/refund-payment-buy")
     public ResponseEntity<String> refundBuyOrderPayment(@RequestBody OrderPaymentRequestDTO requestDTO){
         orderPaymentService.refundBalance(requestDTO);
         return new ResponseEntity<>("SUCCESS",HttpStatus.OK);
+    }
+
+    @PostMapping("/sell")
+    public ResponseEntity<String> receiveSellOrderFunds(@RequestBody OrderPaymentRequestDTO receivePaymenetDTO){
+        orderPaymentService.sellOrderFunds(receivePaymenetDTO);
+        return new ResponseEntity<>("SUCCESS", HttpStatus.OK);
+    }
+
+    @PostMapping("/redo-sell")
+    public ResponseEntity<String> redoSellOrderFunds(@RequestBody OrderPaymentRequestDTO requestDTO){
+        orderPaymentService.redoSellOrderFunds(requestDTO);
+        return new ResponseEntity<>("SUCCESS", HttpStatus.OK);
     }
 }

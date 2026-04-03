@@ -3,6 +3,7 @@ package com.NKP.order_service.service;
 import com.NKP.order_service.dto.OrderPaymentRequestDTO;
 import com.NKP.order_service.dto.OrderRequestDTO;
 import com.NKP.order_service.dto.portfolfio.AddStocksRequestDTO;
+import com.NKP.order_service.dto.portfolfio.DeductStocksRequestDTO;
 import com.NKP.order_service.dto.stock.StockDTO;
 import com.NKP.order_service.feign.PortfolioClient;
 import com.NKP.order_service.feign.StockClient;
@@ -29,90 +30,136 @@ public class PlaceOrderService {
 
     public void placeOrder(OrderRequestDTO orderRequestDTO){
 
-        LocalDateTime time = LocalDateTime.now();
+        if(orderRequestDTO.getQuantity() < 1){
+            throw new IllegalArgumentException("Quantity must be positive.");
+        }
 
+        LocalDateTime time = LocalDateTime.now();
         long userId = orderRequestDTO.getUserId();
         String symbol = orderRequestDTO.getSymbol();
         OrderType type = orderRequestDTO.getType();
-
+        long quantity = orderRequestDTO.getQuantity();
 
         StockDTO stock = stockClient.getStock(symbol);
         String stockName = stock.getName();
         BigDecimal marketPrice = stock.getCMP();
-        // call user-service
-        // validate sufficient funds
-        // deduct the amount
 
-        System.err.println(marketPrice);
-
-        BigDecimal quantity = new BigDecimal(orderRequestDTO.getQuantity());
-//        BigDecimal totalAmount = orderRequestDTO.getOrderPrice().multiply(quantity);
-        BigDecimal totalAmount = marketPrice.multiply(quantity);
+        BigDecimal quantityBD = BigDecimal.valueOf(quantity);
+        BigDecimal totalAmount = marketPrice.multiply(quantityBD);
 
         Order order = Order.builder()
                 .userId(userId)
                 .orderPrice(marketPrice)
-                .quantity(orderRequestDTO.getQuantity())
+                .quantity(quantity)
                 .orderPlacedTime(time)
                 .totalPrice(totalAmount)
                 .type(type)
                 .status(OrderStatus.PENDING)
                 .build();
 
-        System.err.println(order);
-
         orderRepository.save(order);
-
-        System.err.println("db saved: " + order);
-
 
         OrderPaymentRequestDTO requestDTO = new OrderPaymentRequestDTO();
         requestDTO.setAmount(totalAmount);
         requestDTO.setUserId(userId);
 
+        boolean paymentDeducted = false;
 
         try{
             userClient.deductBuyOrderFunds(requestDTO);
+            paymentDeducted = true;
 
-            try{
-                // update portfolio
-                AddStocksRequestDTO addStocksRequestDTO = AddStocksRequestDTO
-                        .builder()
-                        .userId(userId)
-                        .symbol(symbol)
-                        .stockName(stockName)
-                        .quantities(orderRequestDTO.getQuantity())
-                        .orderPrice(marketPrice)
-                        .build();
+            // update portfolio
+            AddStocksRequestDTO addStocksRequestDTO = AddStocksRequestDTO
+                    .builder()
+                    .userId(userId)
+                    .symbol(symbol)
+                    .stockName(stockName)
+                    .quantities(quantity)
+                    .orderPrice(marketPrice)
+                    .build();
 
-                portfolioClient.addStockIntoAccount(addStocksRequestDTO);
+            portfolioClient.addStockIntoAccount(addStocksRequestDTO);
+            order.setStatus(OrderStatus.EXECUTED);
 
-                // update order status
-                order.setStatus(OrderStatus.EXECUTED);
-                orderRepository.save(order);
-                System.err.println("executed status");
-
-            }catch (Exception portfolioEx){
-
+        }catch (Exception e){
+            if(paymentDeducted){
                 try{
                     userClient.refundBuyOrderPayment(requestDTO);
-                    System.out.println("Refund Successfuly");
                 } catch (Exception refundEx){
-                    System.err.println("Refund failed!");
+                    throw new RuntimeException("REFUND FAILED", refundEx);
                 }
-
-                order.setStatus(OrderStatus.CANCELLED);
-                orderRepository.save(order);
-
-                throw new RuntimeException("Portfolio Update failed. " + portfolioEx.getMessage(), portfolioEx);
             }
-
-        }catch (Exception paymentsEx){
             order.setStatus(OrderStatus.CANCELLED);
-            orderRepository.save(order);
-            throw new RuntimeException("Payment failed: " + paymentsEx.getMessage(), paymentsEx);
+        }
+        orderRepository.save(order);
+    }
+
+    public void sellOrder(OrderRequestDTO orderRequestDTO){
+
+        if(orderRequestDTO.getQuantity() < 1){
+            throw new IllegalArgumentException("Quantity must be positive");
         }
 
+        LocalDateTime time = LocalDateTime.now();
+        long userId = orderRequestDTO.getUserId();
+        OrderType type = orderRequestDTO.getType();
+        String symbol = orderRequestDTO.getSymbol();
+        long quantity = orderRequestDTO.getQuantity();
+
+        StockDTO stock = stockClient.getStock(symbol);
+        String stockName = stock.getName();
+        BigDecimal marketPrice = stock.getCMP();
+
+        BigDecimal totalAmtBD = BigDecimal.valueOf(quantity).multiply(marketPrice);
+
+        Order order = Order
+                .builder()
+                .userId(userId)
+                .status(OrderStatus.PENDING)
+                .type(type)
+                .orderPlacedTime(time)
+                .orderPrice(marketPrice)
+                .quantity(quantity)
+                .totalPrice(totalAmtBD)
+                .build();
+
+        orderRepository.save(order);
+
+        DeductStocksRequestDTO deductStocksRequestDTO = DeductStocksRequestDTO
+                .builder()
+                .userId(userId)
+                .quantities(quantity)
+                .stockName(stockName)
+                .symbol(symbol)
+                .build();
+
+        boolean deducted = false;
+
+        try{
+            portfolioClient.deductStockFromAccount(deductStocksRequestDTO);
+            deducted = true;
+
+            System.err.println("deducted successfully");
+
+            OrderPaymentRequestDTO paymentRequestDTO = new OrderPaymentRequestDTO();
+            paymentRequestDTO.setAmount(totalAmtBD);
+            paymentRequestDTO.setUserId(userId);
+
+            userClient.receiveSellOrderFunds(paymentRequestDTO);
+
+            order.setStatus(OrderStatus.EXECUTED);
+
+        }catch (Exception e){
+            if(deducted){
+                try{
+                    portfolioClient.redoStockDeductedFromAccount(deductStocksRequestDTO);
+                }catch (Exception rollbackEx){
+                    throw new RuntimeException("Sell rollback error: "+rollbackEx);
+                }
+            }
+            order.setStatus(OrderStatus.CANCELLED);
+        }
         orderRepository.save(order);
     }
 }
