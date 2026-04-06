@@ -191,7 +191,7 @@ public class PortfolioUpdateService {
                     because there no such data exists
                     once sold
                     need some way to store
-                    sold stocks and their average holdings value of all stoc
+                    sold stocks and their average holdings value of all stock
          */
         BigDecimal avgHoldingsPrice = portfolio.getAvgHoldingsPrice();
         BigDecimal totalInvestment = BigDecimal.valueOf(quantityToRedo).multiply(avgHoldingsPrice);

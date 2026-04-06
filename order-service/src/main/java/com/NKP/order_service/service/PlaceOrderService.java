@@ -159,8 +159,6 @@ public class PlaceOrderService {
             portfolioClient.deductStockFromAccount(deductStocksRequestDTO);
             deducted = true;
 
-            System.err.println("deducted successfully");
-
             OrderPaymentRequestDTO paymentRequestDTO = new OrderPaymentRequestDTO();
             paymentRequestDTO.setAmount(totalAmtBD);
             paymentRequestDTO.setUserId(userId);
