@@ -1,10 +1,9 @@
 
 ## Features:
 1. JWT tokens
---
 
-## Code-level
---
+## Code-level:
+
 portfolio-service -> (Service-class) PortfolioService.java 
                   
 public void redoStockDeductedFromAccount(DeductStocksRequestDTO deductStocksRequestDTO)
