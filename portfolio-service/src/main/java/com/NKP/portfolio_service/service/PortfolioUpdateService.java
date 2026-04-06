@@ -186,6 +186,13 @@ public class PortfolioUpdateService {
         Portfolio portfolio = portfolioRepository.findByUserIdAndSymbolAndStockName(userId,symbol,stockName)
                 .orElseThrow(()-> new IllegalStateException("No Holdings found"));
 
+        /*
+        Problem >>> Cannot get average Holdings price
+                    because there no such data exists
+                    once sold
+                    need some way to store
+                    sold stocks and their average holdings value of all stoc
+         */
         BigDecimal avgHoldingsPrice = portfolio.getAvgHoldingsPrice();
         BigDecimal totalInvestment = BigDecimal.valueOf(quantityToRedo).multiply(avgHoldingsPrice);
 
