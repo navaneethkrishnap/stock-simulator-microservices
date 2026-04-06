@@ -18,55 +18,6 @@ import java.util.Optional;
 public class PortfolioUpdateService {
     private final PortfolioRepository portfolioRepository;
 
-
-//    @Transactional
-//    public void addStockIntoAccount(AddStocksRequestDTO requestDTO){
-//
-//        // check whether stock already exists;
-//        // if exists update average price and also stock quantity for each stock
-//
-//        long userId = requestDTO.getUserId();
-//        String stockSymbol = requestDTO.getSymbol();
-//
-//        long newQuantity = requestDTO.getQuantities();
-//        BigDecimal newPrice = requestDTO.getOrderPrice();
-//
-//        Optional<Portfolio> existingSymbolAndUser =
-//                portfolioRepository.findByUserIdAndSymbol(userId,stockSymbol);
-//
-//        if(existingSymbolAndUser.isPresent()){
-//            Portfolio existingData = existingSymbolAndUser.get();
-//
-//            long oldQty = existingData.getQuantities();
-//            BigDecimal oldAvgPrice = existingData.getAvgHoldingsPrice();
-//
-//            BigDecimal oldQtyBD = BigDecimal.valueOf(oldQty);
-//            BigDecimal newQtyBD = BigDecimal.valueOf(newQuantity);
-//
-//            BigDecimal oldInvestment = oldAvgPrice.multiply(oldQtyBD);
-//            BigDecimal newInvestment = newPrice.multiply(newQtyBD);
-//
-//            BigDecimal totalInvestment = oldInvestment.add(newInvestment);
-//            BigDecimal totalQuantity = oldQtyBD.add(newQtyBD);
-//
-//            BigDecimal newAvgPrice = totalInvestment.divide(totalQuantity,2, RoundingMode.HALF_UP);
-//
-//            existingData.setQuantities(oldQty + newQuantity);
-//            existingData.setAvgHoldingsPrice(newAvgPrice);
-//
-//            portfolioRepository.save(existingData);
-//        } else{
-//            Portfolio portfolio = Portfolio.builder()
-//                    .stockName(requestDTO.getStockName())
-//                    .symbol(stockSymbol)
-//                    .userId(requestDTO.getUserId())
-//                    .quantities(requestDTO.getQuantities())
-//                    .avgHoldingsPrice(requestDTO.getOrderPrice())
-//                    .build();
-//            portfolioRepository.save(portfolio);
-//        }
-//    }
-
     @Transactional
     public void addStockIntoAccount(AddStocksRequestDTO requestDTO){
 
@@ -170,12 +121,9 @@ public class PortfolioUpdateService {
     }
 
 
-    /**
-     * should take care of setting Average Holdings Price
-     * when rollback of selling happens
-     * avgHoldingsPrice is not rolled back and inconsistency happens
-     * @param deductStocksRequestDTO
-     */
+    // should take care of setting Average Holdings Price
+    // when rollback of selling happens
+    // avgHoldingsPrice is not rolled back and inconsistency happens
     @Transactional
     public void redoStockDeductedFromAccount(DeductStocksRequestDTO deductStocksRequestDTO) {
         long userId = deductStocksRequestDTO.getUserId();
