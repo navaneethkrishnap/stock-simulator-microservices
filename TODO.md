@@ -3,8 +3,8 @@
 1. JWT tokens
 
 ## Code-level:
-
-portfolio-service -> (Service-class) PortfolioService.java 
+1. decouple user-service and stock-service controller routed calls 
+2. portfolio-service -> (Service-class) PortfolioService.java 
                   
 public void redoStockDeductedFromAccount(DeductStocksRequestDTO deductStocksRequestDTO)
 
