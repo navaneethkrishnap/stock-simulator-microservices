@@ -21,13 +21,13 @@ public class OrderController {
 
     @PostMapping("/buy")
     public ResponseEntity<OrderResponseDTO> placeOrder(@Valid @RequestBody OrderRequestDTO orderRequest){
-        OrderResponseDTO response = placeOrderService.placeOrder(orderRequest);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        OrderResponseDTO buyResponse = placeOrderService.placeOrder(orderRequest);
+        return new ResponseEntity<>(buyResponse, HttpStatus.OK);
     }
 
     @PostMapping("/sell")
-    public ResponseEntity<String> sellOrder(@Valid @RequestBody OrderRequestDTO orderRequest){
-        placeOrderService.sellOrder(orderRequest);
-        return new ResponseEntity<>("SUCCESS", HttpStatus.OK);
+    public ResponseEntity<OrderResponseDTO> sellOrder(@Valid @RequestBody OrderRequestDTO orderRequest){
+        OrderResponseDTO sellResponse = placeOrderService.sellOrder(orderRequest);
+        return new ResponseEntity<>(sellResponse, HttpStatus.OK);
     }
 }

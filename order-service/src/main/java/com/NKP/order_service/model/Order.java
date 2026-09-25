@@ -24,8 +24,10 @@ public class Order {
     @Column(nullable = false)
     private LocalDateTime orderPlacedTime;
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private OrderStatus status;
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private OrderType type;
     @Column(nullable = false)
     private BigDecimal orderPrice;

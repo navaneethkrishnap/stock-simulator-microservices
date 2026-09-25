@@ -14,11 +14,13 @@ import com.NKP.order_service.model.OrderStatus;
 import com.NKP.order_service.model.OrderType;
 import com.NKP.order_service.repo.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PlaceOrderService {
@@ -42,6 +44,11 @@ public class PlaceOrderService {
         long quantity = orderRequestDTO.getQuantity();
 
         StockDTO stock = stockClient.getStock(symbol);
+
+        if(stock == null){
+            throw new IllegalArgumentException("Stock not found: " + symbol);
+        }
+
         String stockName = stock.getName();
         BigDecimal marketPrice = stock.getCMP();
 
@@ -82,21 +89,18 @@ public class PlaceOrderService {
 
             portfolioClient.addStockIntoAccount(addStocksRequestDTO);
             order.setStatus(OrderStatus.EXECUTED);
-            return OrderResponseDTO.builder()
-                    .orderPrice(marketPrice)
-                    .quantity(quantity)
-                    .status(order.getStatus())
-                    .stockName(stockName)
-                    .symbol(symbol)
-                    .type(order.getType())
-                    .totalInvestment(totalAmount)
-                    .build();
 
         }catch (Exception e){
+            log.warn("Buy order failed for userId={}, symbol={}: {}",userId,symbol, e.getMessage(),e);
+
             if(paymentDeducted){
                 try{
                     userClient.refundBuyOrderPayment(requestDTO);
                 } catch (Exception refundEx){
+                    log.error("REFUND FAILED for userId={}, symbol={}, amount={}: {}", userId,
+                            symbol, totalAmount, refundEx.getMessage(), refundEx);
+                    order.setStatus(OrderStatus.CANCELLED);
+                    orderRepository.save(order);
                     throw new RuntimeException("REFUND FAILED", refundEx);
                 }
             }
@@ -107,14 +111,14 @@ public class PlaceOrderService {
                 .orderPrice(marketPrice)
                 .stockName(stockName)
                 .symbol(symbol)
-                .status(OrderStatus.CANCELLED)
+                .status(order.getStatus())
                 .type(type)
                 .totalInvestment(totalAmount)
                 .quantity(quantity)
                 .build();
     }
 
-    public void sellOrder(OrderRequestDTO orderRequestDTO){
+    public OrderResponseDTO sellOrder(OrderRequestDTO orderRequestDTO){
 
         if(orderRequestDTO.getQuantity() < 1){
             throw new IllegalArgumentException("Quantity must be positive");
@@ -127,6 +131,10 @@ public class PlaceOrderService {
         long quantity = orderRequestDTO.getQuantity();
 
         StockDTO stock = stockClient.getStock(symbol);
+        if(stock == null){
+            throw new IllegalArgumentException("Stock not found: " + symbol);
+        }
+
         String stockName = stock.getName();
         BigDecimal marketPrice = stock.getCMP();
 
@@ -168,15 +176,29 @@ public class PlaceOrderService {
             order.setStatus(OrderStatus.EXECUTED);
 
         }catch (Exception e){
+            log.warn("Sell order failed for userId={}. symbol={}: {}", userId,symbol, e.getMessage(),e);
             if(deducted){
                 try{
                     portfolioClient.redoStockDeductedFromAccount(deductStocksRequestDTO);
                 }catch (Exception rollbackEx){
-                    throw new RuntimeException("Sell rollback error: "+rollbackEx);
+                    log.error("SELL ROLLBACK FAILED for userId={}, symbol={}, quantity={}: {}", userId,symbol,quantity,
+                            rollbackEx.getMessage(), rollbackEx);
+                    order.setStatus(OrderStatus.CANCELLED);
+                    orderRepository.save(order);
+                    throw new RuntimeException("Sell rollback error", rollbackEx);
                 }
             }
             order.setStatus(OrderStatus.CANCELLED);
         }
         orderRepository.save(order);
+        return OrderResponseDTO.builder()
+                .orderPrice(marketPrice)
+                .stockName(stockName)
+                .symbol(symbol)
+                .status(order.getStatus())
+                .type(type)
+                .totalInvestment(totalAmtBD)
+                .quantity(quantity)
+                .build();
     }
 }
