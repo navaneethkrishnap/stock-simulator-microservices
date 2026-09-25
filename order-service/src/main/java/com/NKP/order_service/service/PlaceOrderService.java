@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Slf4j // added validation
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PlaceOrderService {
