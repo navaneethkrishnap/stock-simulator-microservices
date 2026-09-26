@@ -68,6 +68,7 @@ public class PlaceOrderService {
         orderRepository.save(order);
 
         OrderPaymentRequestDTO requestDTO = new OrderPaymentRequestDTO();
+        requestDTO.setOrderId(order.getId());
         requestDTO.setAmount(totalAmount);
         requestDTO.setUserId(userId);
 
@@ -76,6 +77,7 @@ public class PlaceOrderService {
         // update portfolio
         AddStocksRequestDTO addStocksRequestDTO = AddStocksRequestDTO
                 .builder()
+                .orderId(order.getId())
                 .userId(userId)
                 .symbol(symbol)
                 .stockName(stockName)
@@ -156,6 +158,7 @@ public class PlaceOrderService {
 
         DeductStocksRequestDTO deductStocksRequestDTO = DeductStocksRequestDTO
                 .builder()
+                .orderId(order.getId())
                 .userId(userId)
                 .quantities(quantity)
                 .stockName(stockName)
@@ -163,6 +166,7 @@ public class PlaceOrderService {
                 .build();
 
         OrderPaymentRequestDTO paymentRequestDTO = new OrderPaymentRequestDTO();
+        paymentRequestDTO.setOrderId(order.getId());
         paymentRequestDTO.setAmount(totalAmtBD);
         paymentRequestDTO.setUserId(userId);
 

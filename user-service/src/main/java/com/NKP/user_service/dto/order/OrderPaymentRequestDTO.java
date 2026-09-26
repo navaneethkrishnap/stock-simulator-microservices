@@ -7,5 +7,6 @@ import java.math.BigDecimal;
 @Data
 public class OrderPaymentRequestDTO {
     private long userId;
+    private Long orderId;
     private BigDecimal amount;
 }

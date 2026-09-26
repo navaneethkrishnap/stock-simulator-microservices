@@ -11,6 +11,8 @@ import java.math.BigDecimal;
 public class DeductStocksRequestDTO {
     @NotNull
     private Long userId;
+    @NotNull
+    private Long orderId;
     @NotBlank
     private String stockName;
     @NotBlank
