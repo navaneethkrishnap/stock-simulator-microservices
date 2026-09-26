@@ -7,7 +7,6 @@ import com.NKP.portfolio_service.repo.PortfolioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.databind.introspect.PotentialCreator;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -73,9 +72,6 @@ public class PortfolioUpdateService {
         }
     }
 
-    public void rollBackStockAddition(){
-        System.out.println("To be implemented");
-    }
 
     @Transactional
     public void deductStockFromAccount(DeductStocksRequestDTO requestDTO){
@@ -105,16 +101,17 @@ public class PortfolioUpdateService {
         long updatedQty = portfolio.getQuantities() - sellQuantity;
         portfolio.setQuantities(updatedQty);
 
-        if(updatedQty == 0){
-            portfolio.setTotalInvestment(BigDecimal.ZERO);
-            portfolio.setAvgHoldingsPrice(BigDecimal.ZERO);
-            return;
-        }
+//        if(updatedQty == 0){
+//            portfolio.setTotalInvestment(BigDecimal.ZERO);
+//            portfolio.setAvgHoldingsPrice(BigDecimal.ZERO);
+//            return;
+//        }
 
         BigDecimal totalInvestmentReduction = BigDecimal.valueOf(sellQuantity)
                 .multiply(portfolio.getAvgHoldingsPrice());
         BigDecimal updatedTotalInvestment = portfolio.getTotalInvestment().subtract(totalInvestmentReduction);
-        if(updatedTotalInvestment.compareTo(BigDecimal.ZERO) < 0){
+
+        if(updatedQty == 0 || updatedTotalInvestment.compareTo(BigDecimal.ZERO) < 0){
             updatedTotalInvestment = BigDecimal.ZERO;
         }
         portfolio.setTotalInvestment(updatedTotalInvestment);
@@ -148,6 +145,39 @@ public class PortfolioUpdateService {
         portfolio.setTotalInvestment(portfolio.getTotalInvestment().add(totalInvestment));
         portfolio.setAvgHoldingsPrice(avgHoldingsPrice);
 
+        portfolioRepository.save(portfolio);
+    }
+
+    @Transactional
+    public void redoStockAddedIntoAccount(AddStocksRequestDTO addStocksRequestDTO) {
+        long userId = addStocksRequestDTO.getUserId();
+        String symbol = addStocksRequestDTO.getSymbol();
+        String stockName = addStocksRequestDTO.getStockName();
+        long quantityToUndo = addStocksRequestDTO.getQuantities();
+        BigDecimal orderPrice = addStocksRequestDTO.getOrderPrice();
+
+        Portfolio portfolio = portfolioRepository.findByUserIdAndSymbolAndStockName(userId,symbol,stockName)
+                .orElseThrow(() -> new IllegalStateException("No Holdings found"));
+
+        long updatedQty = portfolio.getQuantities() - quantityToUndo;
+        if(updatedQty < 0){
+            throw new IllegalStateException("Cannot undo addition: quantity mismatch");
+        }
+
+        BigDecimal investmentToRemove = orderPrice.multiply(BigDecimal.valueOf(quantityToUndo));
+        BigDecimal updatedTotalInvestment = portfolio.getTotalInvestment().subtract(investmentToRemove);
+        if(updatedTotalInvestment.compareTo(BigDecimal.ZERO) < 0){
+            updatedTotalInvestment = BigDecimal.ZERO;
+        }
+
+        portfolio.setQuantities(updatedQty);
+        portfolio.setTotalInvestment(updatedTotalInvestment);
+
+        if(updatedQty > 0){
+            BigDecimal newAvgPrice = updatedTotalInvestment
+                    .divide(BigDecimal.valueOf(updatedQty),2, RoundingMode.HALF_UP);
+            portfolio.setAvgHoldingsPrice(newAvgPrice);
+        }
         portfolioRepository.save(portfolio);
     }
 }

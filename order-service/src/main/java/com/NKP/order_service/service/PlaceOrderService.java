@@ -73,19 +73,19 @@ public class PlaceOrderService {
 
         boolean paymentDeducted = false;
 
+        // update portfolio
+        AddStocksRequestDTO addStocksRequestDTO = AddStocksRequestDTO
+                .builder()
+                .userId(userId)
+                .symbol(symbol)
+                .stockName(stockName)
+                .quantities(quantity)
+                .orderPrice(marketPrice)
+                .build();
+
         try{
             userClient.deductBuyOrderFunds(requestDTO);
             paymentDeducted = true;
-
-            // update portfolio
-            AddStocksRequestDTO addStocksRequestDTO = AddStocksRequestDTO
-                    .builder()
-                    .userId(userId)
-                    .symbol(symbol)
-                    .stockName(stockName)
-                    .quantities(quantity)
-                    .orderPrice(marketPrice)
-                    .build();
 
             portfolioClient.addStockIntoAccount(addStocksRequestDTO);
             order.setStatus(OrderStatus.EXECUTED);
@@ -96,6 +96,7 @@ public class PlaceOrderService {
             if(paymentDeducted){
                 try{
                     userClient.refundBuyOrderPayment(requestDTO);
+                    portfolioClient.redoStockAddedIntoAccount(addStocksRequestDTO);
                 } catch (Exception refundEx){
                     log.error("REFUND FAILED for userId={}, symbol={}, amount={}: {}", userId,
                             symbol, totalAmount, refundEx.getMessage(), refundEx);
@@ -161,18 +162,17 @@ public class PlaceOrderService {
                 .symbol(symbol)
                 .build();
 
+        OrderPaymentRequestDTO paymentRequestDTO = new OrderPaymentRequestDTO();
+        paymentRequestDTO.setAmount(totalAmtBD);
+        paymentRequestDTO.setUserId(userId);
+
         boolean deducted = false;
 
         try{
             portfolioClient.deductStockFromAccount(deductStocksRequestDTO);
             deducted = true;
 
-            OrderPaymentRequestDTO paymentRequestDTO = new OrderPaymentRequestDTO();
-            paymentRequestDTO.setAmount(totalAmtBD);
-            paymentRequestDTO.setUserId(userId);
-
             userClient.receiveSellOrderFunds(paymentRequestDTO);
-
             order.setStatus(OrderStatus.EXECUTED);
 
         }catch (Exception e){
@@ -180,6 +180,8 @@ public class PlaceOrderService {
             if(deducted){
                 try{
                     portfolioClient.redoStockDeductedFromAccount(deductStocksRequestDTO);
+                    userClient.redoSellOrderFunds(paymentRequestDTO);
+
                 }catch (Exception rollbackEx){
                     log.error("SELL ROLLBACK FAILED for userId={}, symbol={}, quantity={}: {}", userId,symbol,quantity,
                             rollbackEx.getMessage(), rollbackEx);

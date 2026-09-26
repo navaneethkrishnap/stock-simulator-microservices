@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.math.BigDecimal;
 
-@FeignClient(name = "USER-CLIENT", url = "http://localhost:8081")
+@FeignClient(name = "${user.service.name}", url = "http://localhost:8081")
 public interface UserClient {
 
     @PostMapping("trade/buy")
@@ -19,7 +19,7 @@ public interface UserClient {
     ResponseEntity<String> refundBuyOrderPayment(@RequestBody OrderPaymentRequestDTO requestDTO);
 
     @PostMapping("trade/sell")
-    ResponseEntity<String> receiveSellOrderFunds(@RequestBody OrderPaymentRequestDTO receivePaymenetDTO);
+    ResponseEntity<String> receiveSellOrderFunds(@RequestBody OrderPaymentRequestDTO receivePaymentDTO);
 
     @PostMapping("trade/redo-sell")
     ResponseEntity<String> redoSellOrderFunds(@RequestBody OrderPaymentRequestDTO requestDTO);

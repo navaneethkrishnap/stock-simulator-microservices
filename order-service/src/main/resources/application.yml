@@ -20,3 +20,11 @@ server:
 stock:
   service:
     name: STOCK-SERVICE
+
+portfolio:
+  service:
+    name: PORTFOLIO-SERVICE
+
+user:
+  service:
+    name: USER-SERVICE

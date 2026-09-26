@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.math.BigDecimal;
 
-@FeignClient(name = "PORTFOLIO-SERVICE", url = "http://localhost:8085")
+@FeignClient(name = "${portfolio.service.name}", url = "http://localhost:8085")
 public interface PortfolioClient {
 
     @PostMapping("portfolio/add-stock")
@@ -19,6 +19,9 @@ public interface PortfolioClient {
     @PostMapping("portfolio/deduct-stock")
     ResponseEntity<String> deductStockFromAccount(@RequestBody DeductStocksRequestDTO requestDTO);
 
-    @PostMapping("porfolio/redo-deduct-stock")
+    @PostMapping("portfolio/redo-deduct-stock")
     ResponseEntity<String> redoStockDeductedFromAccount(DeductStocksRequestDTO deductStocksRequestDTO);
+
+    @PostMapping("portfolio/redo-add-stock")
+    ResponseEntity<String> redoStockAddedIntoAccount(AddStocksRequestDTO addStocksRequestDTO);
 }

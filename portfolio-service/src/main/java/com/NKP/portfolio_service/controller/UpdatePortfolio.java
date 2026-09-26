@@ -37,4 +37,10 @@ public class UpdatePortfolio {
         portfolioUpdateService.redoStockDeductedFromAccount(deductStocksRequestDTO);
         return new ResponseEntity<>("SUCCESS", HttpStatus.OK);
     }
+
+    @PostMapping("/redo-add-stock")
+    ResponseEntity<String> redoStockAddedIntoAccount(AddStocksRequestDTO addStocksRequestDTO){
+        portfolioUpdateService.redoStockAddedIntoAccount(addStocksRequestDTO);
+        return new ResponseEntity<>("SUCCESS",HttpStatus.OK);
+    }
 }
